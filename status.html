@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MiniPrint Status</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    async function loadJobs() {
+      try {
+        const res = await fetch('/jobs');
+        const jobs = await res.json();
+        const tbody = document.getElementById('job-rows');
+        tbody.innerHTML = '';
+
+        if (!Array.isArray(jobs) || jobs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-400">No jobs yet</td></tr>`;
+          return;
+        }
+
+        for (const j of jobs) {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-gray-50';
+          row.innerHTML = `
+            <td class="py-2 px-3 text-gray-600">${j.id}</td>
+            <td class="py-2 px-3 font-medium text-gray-800 truncate max-w-[16rem]" title="${j.filename}">${j.filename}</td>
+            <td class="py-2 px-3 text-gray-600">${j.cups_job_id ?? ''}</td>
+            <td class="py-2 px-3">
+              <span class="px-2 py-1 text-xs font-medium rounded-full ${
+                j.status === 'submitted'
+                  ? 'bg-green-100 text-green-800'
+                  : j.status === 'error'
+                  ? 'bg-red-100 text-red-800'
+                  : j.status === 'purged'
+                  ? 'bg-gray-200 text-gray-700'
+                  : 'bg-yellow-100 text-yellow-800'
+              }">${j.status}</span>
+            </td>
+            <td class="py-2 px-3">
+              <span class="px-2 py-1 text-xs font-medium rounded ${
+                j.color === 'Color' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+              }">${j.color === 'Color' ? 'Color' : 'B/W'}</span>
+            </td>
+            <td class="py-2 px-3">
+              <span class="px-2 py-1 text-xs font-medium rounded ${
+                j.duplex === 'None' ? 'bg-gray-100 text-gray-800' : 'bg-indigo-100 text-indigo-800'
+              }">${j.duplex === 'None' ? 'Single' : 'Duplex'}</span>
+            </td>
+            <td class="py-2 px-3 text-gray-500 text-sm whitespace-nowrap">${j.created_at}</td>
+          `;
+          tbody.appendChild(row);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function autoRefresh() {
+      loadJobs();
+      setInterval(loadJobs, 5000); // refresh every 5 seconds
+    }
+
+    document.addEventListener('DOMContentLoaded', autoRefresh);
+  </script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-start py-10 px-4">
+  <div class="w-full max-w-4xl bg-white rounded-xl shadow-md p-6">
+    <header class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-semibold text-gray-800">🖨️ MiniPrint Status</h1>
+      <a href="/" class="text-blue-600 text-sm hover:underline">← Back to Upload</a>
+    </header>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-gray-200 text-left text-sm">
+        <thead class="bg-gray-100 border-b border-gray-200 text-gray-700 uppercase text-xs">
+          <tr>
+            <th class="py-2 px-3">ID</th>
+            <th class="py-2 px-3">Filename</th>
+            <th class="py-2 px-3">CUPS&nbsp;ID</th>
+            <th class="py-2 px-3">Status</th>
+            <th class="py-2 px-3">Color</th>
+            <th class="py-2 px-3">Duplex</th>
+            <th class="py-2 px-3">Created</th>
+          </tr>
+        </thead>
+        <tbody id="job-rows"></tbody>
+      </table>
+    </div>
+
+    <footer class="text-center text-gray-400 text-xs mt-6">
+      <p>Auto-refreshing every 5 seconds • Retention enforced server-side</p>
+    </footer>
+  </div>
+</body>
+</html>
+
