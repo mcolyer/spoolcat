@@ -14,9 +14,6 @@ RUN chmod +x entrypoint.sh
 # Runtime dirs for data/spool (mounted as volumes)
 RUN mkdir -p /data /spool
 
-# Use uv to run; install uv (tiny, fast)
-RUN pip install --no-cache-dir uv
-
 ENV HOST=0.0.0.0 PORT=80 \
     DB_PATH=/data/jobs.sqlite3 \
     UPLOAD_DIR=/spool \

@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# Install Python dependencies via uv
+# Install Python dependencies
 echo "Installing Python dependencies..."
-uv pip install -r - <<< "bottle"
+pip install --no-cache-dir bottle
 
 # Start CUPS daemon
 echo "Starting CUPS daemon..."
@@ -20,4 +20,4 @@ if [[ "$PRINTER" == ipp://* || "$PRINTER" == ipps://* || "$PRINTER" == socket://
 fi
 
 # Run the app
-exec uv run /app/spoolcat.py
+exec python /app/spoolcat.py

@@ -1,7 +1,4 @@
-#!/usr/bin/env -S uv run
-# /// script
-# dependencies = ["bottle"]
-# ///
+#!/usr/bin/env python3
 # Spoolcat: ultra-light PDF uploader → CUPS printer
 # - No auth (intended for Tailscale-bound access)
 # - Color / B&W and Duplex options
