@@ -4,6 +4,8 @@ services:
     volumes:
       - data:/data
       - spool:/spool
+      - cups:/var/spool/cups              # CUPS spool directory
+      - cupsetc:/etc/cups                 # CUPS config directory
     environment:
       PRINTER: "ipp://10.0.1.183/ipp/print"
       HOST: "0.0.0.0"
@@ -21,3 +23,5 @@ services:
 volumes:
   data:
   spool:
+  cups:
+  cupsetc:
