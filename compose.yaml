@@ -1,21 +1,19 @@
 services:
-  spoolcat:        # rename service if you prefer
-    build: .
+  spoolcat:
+    image: ghcr.io/mcolyer/spoolcat:latest
+    volumes:
+      - data:/data
+      - spool:/spool
     environment:
-      # Use your printer queue or IPP URI. For a Brother HL-L3220CDW on the LAN:
-      # e.g. ipp://192.168.1.50/ipp/print   or   ipp://100.x.y.z/ipp/print (Tailnet IP)
       PRINTER: "ipp://10.0.1.183/ipp/print"
       HOST: "0.0.0.0"
-      PORT: "8080"
+      PORT: "80"
       DB_PATH: "/data/jobs.sqlite3"
       UPLOAD_DIR: "/spool"
       RETENTION_DAYS: "7"
       MAX_UPLOAD_MB: "64"
-    volumes:
-      - data:/data
-      - spool:/spool
     x-ports:
-      - 8080/https         # publish as HTTPS via Uncloud’s built-in Caddy
+      - spoolcat.uncloud.lan:80/http
     deploy:
       restart_policy:
         condition: any
@@ -23,4 +21,3 @@ services:
 volumes:
   data:
   spool:
-

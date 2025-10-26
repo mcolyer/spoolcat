@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy app
 WORKDIR /app
-COPY miniprint.py index.html status.html ./
+COPY spoolcat.py index.html status.html ./
 
 # Runtime dirs for data/spool (mounted as volumes)
 RUN mkdir -p /data /spool
@@ -16,12 +16,12 @@ RUN mkdir -p /data /spool
 # Use uv to run; install uv (tiny, fast)
 RUN pip install --no-cache-dir uv
 
-ENV HOST=0.0.0.0 PORT=8080 \
+ENV HOST=0.0.0.0 PORT=80 \
     DB_PATH=/data/jobs.sqlite3 \
     UPLOAD_DIR=/spool \
     MAX_UPLOAD_MB=64 \
     RETENTION_DAYS=7
 
-EXPOSE 8080
+EXPOSE 80
 CMD ["./spoolcat.py"]
 
