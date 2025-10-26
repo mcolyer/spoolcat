@@ -2,7 +2,7 @@
 # /// script
 # dependencies = ["bottle"]
 # ///
-# MiniPrint: ultra-light PDF uploader → CUPS printer
+# Spoolcat: ultra-light PDF uploader → CUPS printer
 # - No auth (intended for Tailscale-bound access)
 # - Color / B&W and Duplex options
 # - Tailwind-styled upload + status pages
@@ -45,6 +45,10 @@ conn.commit()
 def _now_iso():
     return datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
+def _is_uri(s: str) -> bool:
+    """Check if PRINTER is a URI (ipp://, ipps://, socket://, lpd://) vs a queue name."""
+    return s.startswith(("ipp://", "ipps://", "socket://", "lpd://"))
+
 def _insert_job(filename, status, color, duplex):
     cur = conn.cursor()
     cur.execute(
@@ -84,8 +88,17 @@ def upload():
 
     jid = _insert_job(safe_name, "spooling", color, duplex)
     try:
-        # Pass options to CUPS (`lpoptions -p <queue> -l` to inspect supported opts)
-        cmd = f"lp -d {shlex.quote(PRINTER)} -o ColorModel={color} -o Duplex={duplex} {shlex.quote(path)}"
+        # Detect if PRINTER is a URI or a queue name
+        file_arg = shlex.quote(path)
+        opts = f"-o ColorModel={color} -o Duplex={duplex}"
+
+        if _is_uri(PRINTER):
+            # URI destination: pass as positional arg, no -d flag
+            cmd = f"lp {opts} {file_arg} {shlex.quote(PRINTER)}"
+        else:
+            # Queue name: use -d flag
+            cmd = f"lp -d {shlex.quote(PRINTER)} {opts} {file_arg}"
+
         out = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True).strip()
 
         # Parse "Printer-123" → 123
