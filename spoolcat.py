@@ -8,7 +8,7 @@
 
 import os, sqlite3, subprocess, shlex, time, threading, traceback
 from datetime import datetime
-from bottle import Bottle, request, response, run, BaseRequest, static_file
+from bottle import Bottle, request, response, run, BaseRequest, static_file, redirect
 
 # ----- Configuration (override via env) --------------------------------------
 PRINTER = os.getenv("PRINTER", "YourCupsQueueName")       # e.g. from `lpstat -p`
@@ -92,15 +92,16 @@ def upload():
         conn.execute("UPDATE jobs SET status=?, cups_job_id=? WHERE id=?",
                      ("submitted", cups_id, jid))
         conn.commit()
-        return {"job_id": jid, "cups_job_id": cups_id, "message": out, "color": color, "duplex": duplex}
+        redirect("/status")
     except subprocess.CalledProcessError as e:
         conn.execute("UPDATE jobs SET status=? WHERE id=?", ("error", jid))
         conn.commit()
         response.status = 500
-        return {"error": "lp failed", "output": e.output, "color": color, "duplex": duplex}
+        return f"Print job failed: {e.output}"
 
 @app.get("/jobs")
 def jobs():
+    response.content_type = 'application/json'
     rows = conn.execute(
         "SELECT id,filename,cups_job_id,status,color,duplex,created_at "
         "FROM jobs ORDER BY id DESC LIMIT 200"
