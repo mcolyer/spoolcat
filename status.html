@@ -7,11 +7,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     async function loadJobs() {
+      const tbody = document.getElementById('job-rows');
       try {
         const res = await fetch('/jobs');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const jobs = await res.json();
-        const tbody = document.getElementById('job-rows');
         tbody.innerHTML = '';
+
+        console.log('Loaded jobs:', jobs);
 
         if (!Array.isArray(jobs) || jobs.length === 0) {
           tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-400">No jobs yet</td></tr>`;
@@ -51,7 +56,8 @@
           tbody.appendChild(row);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error loading jobs:', err);
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-red-500">Error loading jobs: ${err.message}</td></tr>`;
       }
     }
 
