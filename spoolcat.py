@@ -6,7 +6,7 @@
 # - SQLite job log
 # - Auto-purges uploaded files after RETENTION_DAYS
 
-import os, sqlite3, subprocess, shlex, time, threading, traceback
+import os, sqlite3, subprocess, shlex, time, threading, traceback, json
 from datetime import datetime
 from bottle import Bottle, request, response, run, BaseRequest, static_file, redirect
 
@@ -102,12 +102,18 @@ def upload():
 @app.get("/jobs")
 def jobs():
     response.content_type = 'application/json'
-    rows = conn.execute(
-        "SELECT id,filename,cups_job_id,status,color,duplex,created_at "
-        "FROM jobs ORDER BY id DESC LIMIT 200"
-    ).fetchall()
-    cols = ["id","filename","cups_job_id","status","color","duplex","created_at"]
-    return [dict(zip(cols, r)) for r in rows]
+    try:
+        rows = conn.execute(
+            "SELECT id,filename,cups_job_id,status,color,duplex,created_at "
+            "FROM jobs ORDER BY id DESC LIMIT 200"
+        ).fetchall()
+        cols = ["id","filename","cups_job_id","status","color","duplex","created_at"]
+        result = [dict(zip(cols, r)) for r in rows]
+        return json.dumps(result)
+    except Exception as e:
+        traceback.print_exc()
+        response.status = 500
+        return json.dumps({"error": str(e)})
 
 # Manual cleanup trigger (safe on Tailnet; no auth by design here)
 @app.post("/admin/run_cleanup")
